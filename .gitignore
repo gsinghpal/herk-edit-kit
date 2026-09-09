@@ -6,6 +6,7 @@
 *.pem
 *.key
 node_modules/
+.venv/
 raw-media/
 video-projects/
 renders/

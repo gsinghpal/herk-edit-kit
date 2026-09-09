@@ -1,5 +1,61 @@
 # Setup and troubleshooting
 
+## Prepared local workspace
+
+Installed and verified on Apple Silicon on September 8, 2026. Open this repository
+folder in Codex for its 14 editing skills. Use the following from the repo root:
+
+```sh
+npm run studio                         # open the demo Studio on port 3082
+npm run new-video -- lesson-one         # create a private editing project
+npm run hf -- preview video-projects/lesson-one
+npm run transcribe:local -- video-projects/lesson-one/assets/raw.mp4
+npm run hf -- tts "Your narration here" --output video-projects/lesson-one/assets/narration.wav
+```
+
+`npm run hf -- ...` automatically uses the project's `.venv` for optional Python
+tools. From a video project directory, activate the environment with
+`source ../../.venv/bin/activate`, then use `npx hyperframes` normally.
+Render a reviewed project from its directory:
+
+```sh
+npx hyperframes lint
+npx hyperframes render --quality draft --output renders/draft-01.mp4
+```
+
+Local transcription uses whisper.cpp with the downloaded `small.en` English model.
+It writes a new `raw.transcript.json` containing the word timings and the full
+ffprobe source duration, ready for the kit's cutting tools. Existing output files
+are refused. A last-word overrun of at most 0.25 seconds is bounded to the actual
+recording duration and recorded in `timing_adjustments`; larger timing errors are
+rejected. Review recognized words and timing against speech before applying cuts.
+For other languages, use the native HyperFrames transcription command with an
+appropriate multilingual model and normalize its output before cutting.
+
+Kokoro voice generation is installed with its model and voices and has produced
+a test WAV. NumPy, SoundFile, Transformers, and PyTorch are installed in `.venv`;
+MusicGen weights are not downloaded and music generation has not been tested.
+Paid providers remain unconfigured; local editing, transcription, and narration
+do not require an API key. Recreate the Python environment with:
+
+```sh
+python3 -m venv .venv
+.venv/bin/python -m pip install -r requirements-local.txt
+```
+
+Verification: 11 tests pass; media cuts preserve A/V duration alignment; the demo
+renders to eight seconds of 1920x1080 H.264 at 30fps. Local transcription recognizes
+the 20-word synthetic speech fixture and its normalized output passes silence-cut
+planning. Demo evidence is saved in `video-projects/demo/VERIFY.md`.
+
+The lockfile includes patched Hono 4.13.7 and Sharp 0.35.4. npm still reports the
+unpatched `adm-zip` symlink-extraction advisory GHSA-vwc7-r8mq-g2x9 (also attributed
+to its HyperFrames parent). Avoid extracting untrusted ZIP archives through the
+kit. HyperFrames stays at the kit's tested 0.7.109 pin; doctor may advertise a newer
+release. Updating it is a separate compatibility check.
+
+## General installation
+
 Start with [tools, accounts, and API keys](TOOLS-AND-API-KEYS.md) for Nate's
 ElevenLabs and Kie.ai choices, Whisper alternatives, and optional services.
 
