@@ -10,6 +10,20 @@ function run(script, args) { return spawnSync(process.execPath, [join(root, scri
 function scratch() { return mkdtempSync(join(tmpdir(), 'hyperframes-kit-test-')); }
 const apply = '.agents/skills/cut-mistakes/scripts/apply-cuts.mjs';
 
+test('preflight accepts timed video inside a composition root and still checks its timeline', () => {
+  const out = scratch();
+  const html = `<div id="root" data-composition-id="root" data-start="0" data-duration="1" data-width="1920" data-height="1080">
+    <video id="footage" data-start="0" data-duration="1" data-track-index="1" muted></video>
+    </div><script>const tl=gsap.timeline({paused:true});tl.to('#root',{opacity:1,duration:1});window.__timelines['root']=tl;</script>`;
+  writeFileSync(join(out, 'index.html'), html);
+  const valid = run('scripts/preflight.mjs', [out]);
+  assert.equal(valid.status, 0, valid.stdout + valid.stderr);
+  writeFileSync(join(out, 'index.html'), html.replace("window.__timelines['root']", "window.__timelines['wrong']"));
+  const invalid = run('scripts/preflight.mjs', [out]);
+  assert.equal(invalid.status, 1, invalid.stdout + invalid.stderr);
+  assert.match(invalid.stdout, /timeline_key_mismatch/);
+});
+
 test('silence edit preserves speech and produces shorter, ordered timestamps', () => {
   const out = scratch();
   const result = run('.agents/skills/cut-silences/scripts/cut-silences.mjs', [fixture, '--out-dir', out]);

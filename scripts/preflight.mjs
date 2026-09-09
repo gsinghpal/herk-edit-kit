@@ -190,11 +190,9 @@ if (!rootStart) {
   }
 } else {
   if (videoWithDataStart) {
-    fail(
-      "root_data_start_conflicts_with_video",
-      `root has data-start="${rootStart}" AND an inline <video ${readAttr(videoWithDataStart.raw, "id") ? `id="${readAttr(videoWithDataStart.raw, "id")}"` : ""} data-start=...>. This triggers video_nested_in_timed_element at render time. Either remove data-start from root, or remove data-start from the <video>.`
-    );
-    hardFail++;
+    // HyperFrames exempts composition roots from timed-parent video nesting.
+    // Actual nested timed wrappers remain the responsibility of HyperFrames lint.
+    ok("root_data_start", `"${rootStart}" (composition root with timed video)`);
   } else {
     ok("root_data_start", `"${rootStart}"`);
   }
